@@ -9,6 +9,11 @@
   #include "WConstants.h"
 #endif
 
+enum DigitalReadState {
+  ON = 0,
+  OFF = 1
+};
+
 /*
  * Connected to a single pin with value of {int}.
  * on(): => Joystick.button(pin, 1)
@@ -49,14 +54,14 @@ class TwoPositionLatchingSwitch {
     unsigned int _alternatePin;
     
     // The last recorded reading (high or low) of the pin. Used to prevent multiple firings of on() or off().
-    unsigned int _lastState;
+    DigitalReadState _lastState;
 
     bool _toggle;
     
-    // Create Bounce objects for each button.  The Bounce object
-    // automatically deals with contact chatter or "bounce", and
-    // it makes detecting changes very simple.
-    // Bounce _bounce;
+    // the following variables are unsigned longs because the time, measured in
+    // milliseconds, will quickly become a bigger number than can be stored in an int.
+    unsigned long _lastDebounceTime;  // the last time the output pin was toggled
+    unsigned long _debounceDelay;     // the debounce time; increase if the output flickers
 };
 
 #endif

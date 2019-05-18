@@ -1,13 +1,13 @@
 #include "TwoPositionLatchingSwitch.h"
-// #include <Bounce.h>
 
 TwoPositionLatchingSwitch::TwoPositionLatchingSwitch()
 {
+  _lastDebounceTime = 0;
+  _debounceDelay = 100; // Increase if output flickers
 }
 
 void TwoPositionLatchingSwitch::init(int pin)
 {
-  // _bounce = Bounce(pin, 10); // 10 = 10 ms debounce time
   pinMode(pin, INPUT_PULLUP);
   
   _pin = pin;
@@ -17,16 +17,15 @@ void TwoPositionLatchingSwitch::init(int pin)
 
 void TwoPositionLatchingSwitch::onUpdate()
 {
-//  _bounce.update();
-  resetJoystickInput();
+  // resetJoystickInput();
 
   int state = digitalRead(_pin);
 
-  if (state && _lastState != 1) {
+  if (state == DigitalReadState::ON && _lastState != DigitalReadState::ON) {
     on();
   }
 
-  if (state && _lastState != 0) {
+  if (state == DigitalReadState::OFF && _lastState != DigitalReadState::OFF) {
     off();
   }
 }
@@ -34,38 +33,51 @@ void TwoPositionLatchingSwitch::onUpdate()
 void TwoPositionLatchingSwitch::resetJoystickInput()
 {
   if (_toggle) {
-    _activate(_pin, 0);
+    activate(_pin, 0);
   } else {
-    _activate(_alternatePin, 0);
-    Joystick.button(_alternatePin, 0);
+    activate(_alternatePin, 0);
   }
 }
 
 void TwoPositionLatchingSwitch::on()
 {
+  // Serial.println("On");
   activate(_pin, 1);
 
-  _lastState = 1;
+  _lastState = DigitalReadState::ON;
 }
 
 void TwoPositionLatchingSwitch::off()
 {
+  // Serial.println("Off");
   if (_toggle) {
     activate(_pin, 1);
   } else {
     activate(_alternatePin, 1);
   }
 
-  _lastState = 0;
+  _lastState = DigitalReadState::OFF;
 }
 
 void TwoPositionLatchingSwitch::activate(int pin, int value)
-{
-  // Joystick.button(pin, value);
-  Serial.println('pin: ' + pin + ', value: ' + value);
+{  
+  unsigned long currentTime = millis();
+
+  String message = (String) "Current time: " + currentTime + ", _lastDebounceTime: " + _lastDebounceTime;
+  Serial.println(message);
+
+  if (currentTime - _lastDebounceTime < _debounceDelay) {
+    return;
+  }
+
+  _lastDebounceTime = currentTime;
+  
+  Joystick.button(pin, value);
+//  message = (String)"pin: " + pin + ", value: " + value;
+//  Serial.println(message);
 }
 
-void TwoPositionLatchingSwitch::nextAvailablePin()
+int TwoPositionLatchingSwitch::nextAvailablePin()
 {
   if (_toggle) {
     return _pin + 1;
