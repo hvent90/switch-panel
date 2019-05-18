@@ -1,8 +1,16 @@
 # Switch Panel
 Teensy with switches recognized by a computer as a Joystick
 
+* [Installation](#installation)
+* [Usage](#usage)
 * [Components](#components)
 * [Layout](#layout)
+
+## Installation
+todo
+
+## Usage
+todo
 
 ## Components
 
